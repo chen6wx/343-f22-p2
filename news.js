@@ -1,19 +1,41 @@
 
 const queryInputElem = document.getElementById('query');
 const resultsContainerElem = document.getElementById("results");
-const selctElem = document.getElementById("selct");
+const selectElem = document.getElementById("select");
+const filterElem = document.getElementById("filter");
 
 const form = document.getElementById('vestigial');
 queryInputElem.addEventListener("keydown", whenSomeKeyPressed);
+filterElem.addEventListener("click", filterResults);
+
+var searched = false;
+var allNewsLanguages;
+var newsLanguages;
 
 async function whenSomeKeyPressed(event) {
 
     if (event.key === "Enter") {
         event.preventDefault();
-        const news = await searchForNews(queryInputElem.value);
+        news = await searchForNews(queryInputElem.value);
         newsElements = await createNewsElements(news.results);
         clearResultsElem();
+        let titleElem = document.createElement('div');
+        titleElem.classList.add('resultTitle');
+        let langTitleElem = document.createElement('div');
+        langTitleElem.classList.add('langTitle');
+        langTitleElem.textContent = 'Language';
+        let linkTitleElem = document.createElement('div');
+        linkTitleElem.classList.add('linkTitle');
+        linkTitleElem.textContent = 'Link';
+        titleElem.appendChild(langTitleElem);
+        titleElem.appendChild(linkTitleElem);
+        resultsContainerElem.append(titleElem);
         populateResultsElem(newsElements);
+        clearDropDownElem();
+        createDropDownList(newsLanguages);
+        allNewsLanguages = newsLanguages;
+
+        searched = true;
     }
 }
 
@@ -28,8 +50,7 @@ function searchForNews(query) {
 }
 
 async function createNewsElements(newsResultsJson) {
-    const newsLanguages = await getNewsLanguages(newsResultsJson);
-    createDropDownList(newsLanguages);
+    newsLanguages = await getNewsLanguages(newsResultsJson);
     console.log(newsResultsJson);
 
     return newsResultsJson.map((news, i) => {
@@ -45,6 +66,7 @@ async function createNewsElements(newsResultsJson) {
 }
 
 async function getNewsLanguages(news) {
+    let languageNames = new Intl.DisplayNames(['en'], { type: 'language' });
     const newsLanguages = await Promise.all(
         news.map(async (article) => {
             const newsLanguage = await fetch(
@@ -55,44 +77,67 @@ async function getNewsLanguages(news) {
             }
             );
             const newsLanguageJson = await newsLanguage.json();
-            console.log(article);
-            console.log(newsLanguageJson);
-            return newsLanguageJson.data.detections[0].language;
+            return languageNames.of(newsLanguageJson.data.detections[0].language);
         })
     );
-    console.log(newsLanguages);
     return newsLanguages;
 }
 
 function createDropDownList(options) {
+    var allOptionElem = document.createElement("option");
+    allOptionElem.textContent = "All";
+    allOptionElem.value = "All";
+    select.appendChild(allOptionElem);
     const langOptions = [... new Set(options)]
-    let languageNames = new Intl.DisplayNames(['en'], {type: 'language'});
-    for(var i = 0; i < langOptions.length; i++) {
-        var opt = languageNames.of(langOptions[i]);
+    for (var i = 0; i < langOptions.length; i++) {
         var optionElem = document.createElement("option");
-        optionElem.textContent = opt;
-        optionElem.value = opt;
+        optionElem.textContent = langOptions[i];
+        optionElem.value = langOptions[i];
         select.appendChild(optionElem);
     }
-    let btn = document.createElement("button");
-    btn.textContent = "Filter";
-    btn.addEventListener("click", filterResults());
-    form.appendChild(btn);
 }
 
-function filterResults() {
+async function filterResults(event) {
+    event.preventDefault();
     clearResultsElem();
-    populateResultsElem(newsElements);
+    if (newsLanguages == null) {
+        alert("Please search for news!");
+        return
+    }
+    let titleElem = document.createElement('div');
+    titleElem.classList.add('resultTitle');
+    let langTitleElem = document.createElement('div');
+    langTitleElem.classList.add('langTitle');
+    langTitleElem.textContent = 'Language';
+    let linkTitleElem = document.createElement('div');
+    linkTitleElem.classList.add('linkTitle');
+    linkTitleElem.textContent = 'Link';
+    titleElem.appendChild(langTitleElem);
+    titleElem.appendChild(linkTitleElem);
+    resultsContainerElem.append(titleElem);
+    const newsResults = new Array();
 
+    const selectElement = selectElem.options[selectElem.selectedIndex].value;
+    if (selectElement == "All") {
+        newsElements = await createNewsElements(news.results);
+        populateResultsElem(newsElements);
+        return
+    }
+    for (var j = 0; j < news.results.length; j++) {
+        if (selectElement === allNewsLanguages[j]) {
+            console.log(j);
+            newsResults.push(news.results[j]);
+        }
+    }
+    newsElements = await createNewsElements(newsResults);
+    populateResultsElem(newsElements);
 }
 
 
 function createNewsLanguageElements(newsLanguage) {
     const newsLanguageElem = document.createElement("div");
     newsLanguageElem.classList.add('language');
-    let languageNames = new Intl.DisplayNames(['en'], {type: 'language'});
-    console.log(languageNames.of(newsLanguage));
-    newsLanguageElem.append(languageNames.of(newsLanguage));
+    newsLanguageElem.append(newsLanguage);
     return newsLanguageElem;
 }
 
@@ -102,52 +147,12 @@ function clearResultsElem() {
     });
 }
 
+function clearDropDownElem() {
+    Array.from(selectElem.childNodes).forEach((child) => {
+        child.remove();
+    });
+}
+
 function populateResultsElem(newsResultsElems) {
     resultsContainerElem.append(...newsResultsElems);
 }
-
-
-
-
-// form.addEventListener('submit', (event) => {
-//     console.log('submitting');
-//     event.preventDefault();
-// })
-
-// const result = document.getElementById('result');
-
-// queryInputElem.addEventListener('keyup', async function (event) {
-//     event.preventDefault();
-//     if (event.key == 'Enter') {
-//         console.log('pressed enter');
-
-//         const newsResultsResp = await fetch(`https://newsdata.io/api/1/news?apikey=pub_14349f52f64451f046a829672ecd657ed8abb&q=${encodeURIComponent(queryInputElem.value)}`)
-//         console.log(newsResultsResp);
-//         const newsResults = await newsResultsResp.json();
-
-//         console.log(newsResults);
-
-//         const language = [];
-
-//         const newsResultsElems = newsResults.results.map(async (news) => {
-//             const resultElem = document.createElement('div');
-//             resultElem.classList.add('news');
-//             const resultElemLink = document.createElement('a');
-//             resultElemLink.setAttribute('href', `${news.link}`);
-//             resultElemLink.innerText = `${news.title}`;
-//             resultElem.appendChild(resultElemLink);
-
-//             const translateResultsElems = await fetch(``)
-//             return resultElem;
-//         })
-
-//         const resultsContainer = document.getElementById("results");
-//         Array.from(resultsContainer.childNodes).forEach((child) => {
-//             child.remove();
-//         });
-//         resultsContainer.append(...newsResultsElems);
-//         // for (let i = 0; i < 10; i++) {
-//         //     const
-//         // }
-//     }
-// })

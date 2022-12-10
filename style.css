@@ -1,0 +1,115 @@
+h1 {
+    font-family: sans-serif;
+    font-size: 50px;
+    width: 100%;
+    border-bottom: 3px solid black;
+}
+
+#vestigial {
+    font-family: sans-serif;
+    font-size: 23px;
+    padding-bottom: 10px;
+    display: flex;
+}
+
+input {
+    margin-right: 23;
+}
+
+input[type=text] {
+    border: lightgrey solid 1px;
+    border-bottom: 2px solid;
+    font-size: 20px;
+}
+
+select {
+    font-family: serif;
+    font-size: 20px;
+}
+
+button {
+    margin-left: 10px;
+    font-size: 20px;
+    font-family: serif;
+}
+
+#results {
+    display: flex;
+    flex-direction: column;
+    font-family: serif;
+    font-size: 24px;
+    margin-top: 30px;
+    border: 1px solid black;
+}
+
+label {
+    margin-right: 10px;
+}
+
+.resultTitle {
+    display: flex;
+    font-weight: bold;
+    border: 1px solid black;
+}
+
+.langTitle {
+    min-width: 150px;
+    padding: 5px;
+    border-right: 2px solid black;
+}
+
+.linkTitle {
+    padding: 5px;
+}
+
+.news {
+    display: flex;
+    border: 1px solid black;
+}
+
+.language {
+    order: 1;
+    min-width: 150px;
+    border-right: 2px solid black;
+    padding: 5px;
+}
+
+a {
+    order: 2;
+    padding: 5px;
+}
+
+
+@media screen and (max-width: 768px) {
+    #vestigial {
+        flex-direction: column;
+    }
+
+    button {
+        margin-top: 5px;
+        margin-left: 0px;
+    }
+
+    #results {
+        font-size: 16px;
+    }
+
+    .news {
+        order: 1;
+        flex-direction: column;
+    }
+
+    .language {
+        order: 2;
+        border-right: none;
+        border-top: 1px solid black;
+        color: grey;
+    }
+
+    .linkTitle,
+    .langTitle,
+    .resultTitle {
+        display: none;
+    }
+
+}
